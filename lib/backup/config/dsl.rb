@@ -29,7 +29,7 @@ module Backup
             [ # Databases
               ['MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Riak', 'OpenLDAP', 'SQLite'],
               # Storages
-              ['S3', 'CloudFiles', 'Ninefold', 'Dropbox', 'FTP',
+              ['S3', 'CloudFiles', 'Ninefold', 'Dropbox', 'GoogleDrive', 'FTP',
               'SFTP', 'SCP', 'RSync', 'Local'],
               # Compressors
               ['Gzip', 'Bzip2', 'Custom', 'Pbzip2', 'Lzma'],

@@ -26,6 +26,7 @@ group :production do
   # gem 'excon' - use version specified by fog
   gem 'unf' # for fog/AWS
   gem 'dropbox-sdk', '= 1.5.1' # patched
+  gem 'google-api-client', '~> 0.7.1'
   gem 'net-ssh'
   gem 'net-scp'
   gem 'net-sftp'
