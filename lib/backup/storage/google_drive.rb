@@ -2,8 +2,8 @@
 
 require "google/api_client"
 require "google/api_client/auth/file_storage"
-require "backup/storage/google_drive_auth"
-require "backup/storage/google_drive_transfer"
+require "backup/storage/google/google_drive_auth"
+require "backup/storage/google/google_drive_transfer"
 
 module Backup
   module Storage
@@ -45,7 +45,7 @@ module Backup
         end
 
         def transfer!
-          package.filenames.each { |filename| connection.upload(filename, folder_id) }
+          connection.upload(package, folder_id)
 
         rescue => err
           raise Error.wrap(err, "Upload Failed!")
@@ -54,7 +54,7 @@ module Backup
         def remove!(package)
           Logger.info "Removing backup package dated #{ package.time }..."
 
-          connection.delete(remote_path_for(package))
+          connection.delete(package, folder_id)
         end
 
     end

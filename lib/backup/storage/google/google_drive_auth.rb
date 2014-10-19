@@ -1,90 +1,96 @@
-class GoogleDriveAuth
-  include Config::Helpers
-  
-  def initialize(options = {})
-    @options = {
-      client_id: options["client_id"],
-      client_secret: options["client_secret"], 
-      api_version: options["api_version"],
-      cache_path: options["cache_path"],
-      scope: "https://www.googleapis.com/auth/drive",
-      authorization_uri: "https://accounts.google.com/o/oauth2/auth",
-      token_credential_uri: "https://accounts.google.com/o/oauth2/token",
-      redirect_uri: "urn:ietf:wg:oauth:2.0:oob"
-    }
+module Backup
+  class GoogleDriveAuth
+    include Backup::Config::Helpers
 
-    connect
-  end
+    attr_accessor :client, :drive
+    
+    def initialize(options = {})
+      defaults = {
+        client_id: "",
+        client_secret: "", 
+        api_version: "v2",
+        cache_path: ".cache",
+        scope: "https://www.googleapis.com/auth/drive",
+        authorization_uri: "https://accounts.google.com/o/oauth2/auth",
+        token_credential_uri: "https://accounts.google.com/o/oauth2/token",
+        redirect_uri: "urn:ietf:wg:oauth:2.0:oob"
+      }
 
-  def connect
-    @client = (auth.nil? ? authorize_and_cache : authorized_client)
-    @drive = @client.discovered_api("drive", api_version)
-  rescue => err
-    raise Error.wrap(err, "Authorization Failed")
-  end
+      @options = defaults.merge(options)
 
-  def file_storage
-    Google::APIClient::FileStorage.new(credential_store_file)
-  end
+      connect
+    end
 
-  def auth
-    file_storage.authorization
-  end
+    def connect
+      @client = (auth.nil? ? authorize_and_cache : authorized_client)
+      @drive = @client.discovered_api("drive", @options[:api_version])
+    rescue => err
+      raise Error.wrap(err, "Authorization Failed")
+    end
 
-  def authorize_and_cache
-    require "timeout"
+    def file_storage
+      Google::APIClient::FileStorage.new(credential_store_file)
+    end
 
-    Logger.info "Creating a new authorization!"
+    def auth
+      file_storage.authorization
+    end
 
-    client = Google::APIClient.new(
-      application_name: "Ruby backup to google drive",
-      application_version: "0.1.0"
-    )
+    def authorize_and_cache
+      require "timeout"
 
-    authorization = Signet::OAuth2::Client.new(@options)
+      Logger.info "Creating a new authorization!"
 
-    template = Backup::Template.new(
-      auth: authorization,
-      credential_store_file: credential_store_file
-    )
-    template.render("storage/google_drive/authorization_url.erb")
+      client = Google::APIClient.new(
+        application_name: "Ruby backup to google drive",
+        application_version: "0.1.0"
+      )
 
-    Timeout::timeout(180) {
-      authorization.code = STDIN.gets
-    }
+      authorization = Signet::OAuth2::Client.new(@options)
 
-    authorization.fetch_access_token!
+      template = Backup::Template.new(
+        auth: authorization,
+        credential_store_file: credential_store_file
+      )
+      template.render("storage/google_drive/authorization_url.erb")
 
-    template.render("storage/google_drive/authorized.erb")
-    write_cache!(authorization)
-    template.render("storage/google_drive/cache_file_written.erb")
+      Timeout::timeout(180) {
+        authorization.code = STDIN.gets
+      }
 
-    client.authorization = authorization
+      authorization.fetch_access_token!
 
-    client
+      template.render("storage/google_drive/authorized.erb")
+      write_cache!(authorization)
+      template.render("storage/google_drive/cache_file_written.erb")
 
-  rescue => err
-    raise Error.wrap(err, "Could not authorize")
-  end
+      client.authorization = authorization
 
-  def authorized_client
-    client = Google::APIClient.new(
-      application_name: "Ruby backup to google drive",
-      application_version: "0.1.0"
-    )
+      client
 
-    client.authorization = auth
+    rescue => err
+      raise Error.wrap(err, "Could not authorize")
+    end
 
-    client
-  end
+    def authorized_client
+      client = Google::APIClient.new(
+        application_name: "Ruby backup to google drive",
+        application_version: "0.1.0"
+      )
 
-  def credential_store_file
-    path = @options.cache_path.start_with?("/") ? @options.cache_path : File.join(Config.root_path, @options.cache_path)
-    File.join(path, @options.client_id + @options.client_secret)
-  end
+      client.authorization = auth
 
-  def write_cache!(authorization)
-    FileUtils.mkdir_p File.dirname(credential_store_file)
-    file_storage.write_credentials(authorization)
+      client
+    end
+
+    def credential_store_file
+      path = @options[:cache_path].start_with?("/") ? @options[:cache_path] : File.join(Config.root_path, @options[:cache_path])
+      File.join(path, @options[:client_id] + @options[:client_secret])
+    end
+
+    def write_cache!(authorization)
+      FileUtils.mkdir_p File.dirname(credential_store_file)
+      file_storage.write_credentials(authorization)
+    end
   end
 end
