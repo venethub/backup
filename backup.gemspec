@@ -6,9 +6,9 @@ Gem::Specification.new do |gem|
   gem.name        = 'venet-backup'
   gem.version     = Backup::VERSION
   gem.platform    = Gem::Platform::RUBY
-  gem.authors     = 'Michael van Rooijen'
-  gem.email       = 'meskyanichi@gmail.com'
-  gem.homepage    = 'https://github.com/meskyanichi/backup'
+  gem.authors     = 'Andrey Solopchuk'
+  gem.email       = 'venet.dev@gmail.com'
+  gem.homepage    = 'https://github.com/venethub/backup'
   gem.license     = 'MIT'
   gem.summary     = 'Provides an elegant DSL in Ruby for performing backups on UNIX-like systems.'
   gem.description = <<-EOS.gsub(/\s+/, ' ').strip
@@ -27,12 +27,6 @@ Gem::Specification.new do |gem|
   gem.post_install_message = <<-EOS
 
     Thank you for installing Backup!
-
-    See the Release Notes for changes in this version:
-    http://meskyanichi.github.io/backup/v4/release-notes
-
-    If you're upgrading from v3.x, be sure to read:
-    http://meskyanichi.github.io/backup/v4/upgrading
 
   EOS
 
